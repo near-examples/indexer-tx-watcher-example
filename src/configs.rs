@@ -48,6 +48,8 @@ pub(crate) struct InitConfigArgs {
     /// Specify a custom download URL for the genesis-file.
     #[clap(long)]
     pub download_genesis_url: Option<String>,
+    #[clap(long)]
+    pub max_gas_burnt_view: Option<u64>,
 }
 
 pub(crate) fn init_logging() {
@@ -71,6 +73,7 @@ impl From<InitConfigArgs> for near_indexer::InitConfigArgs {
             genesis: config_args.genesis,
             download: config_args.download,
             download_genesis_url: config_args.download_genesis_url,
+            max_gas_burnt_view: config_args.max_gas_burnt_view,
         }
     }
 }

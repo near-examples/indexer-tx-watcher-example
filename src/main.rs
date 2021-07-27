@@ -1,5 +1,5 @@
-use std::collections::{HashMap, HashSet};
 use actix;
+use std::collections::{HashMap, HashSet};
 
 use clap::Clap;
 use tokio::sync::mpsc;
@@ -20,40 +20,50 @@ async fn listen_blocks(mut stream: mpsc::Receiver<near_indexer::StreamerMessage>
     // map of correspondence between txs and receipts
     let mut tx_receipt_ids = HashMap::<String, String>::new();
     // list of receipt ids we're following
-    let mut wanted_receipt_ids =  HashSet::<String>::new();
+    let mut wanted_receipt_ids = HashSet::<String>::new();
     while let Some(streamer_message) = stream.recv().await {
-        for chunk in streamer_message.chunks {
+        for shard in streamer_message.shards {
+            let chunk = if let Some(chunk) = shard.chunk {
+                chunk
+            } else {
+                continue;
+            };
+
             for transaction in chunk.transactions {
                 // Check if transaction is mintbase related
                 if is_mintbase_tx(&transaction) {
-                    // extract receipt_id in which transaction was converted
-                    let converted_into_receipt_id = transaction.outcome
+                    // extract receipt_id transaction was converted into
+                    let converted_into_receipt_id = transaction
+                        .outcome
                         .execution_outcome
                         .outcome
                         .receipt_ids
                         .first()
                         .expect("`receipt_ids` must contain one Receipt Id")
                         .to_string();
-                    // add to the list of receipt ids we are interested in
+                    // add `converted_into_receipt_id` to the list of receipt ids we are interested in
                     wanted_receipt_ids.insert(converted_into_receipt_id.clone());
                     // add key value pair of transaction hash and in which receipt id it was converted for further lookup
-                    tx_receipt_ids.insert(converted_into_receipt_id, transaction.transaction.hash.to_string());
+                    tx_receipt_ids.insert(
+                        converted_into_receipt_id,
+                        transaction.transaction.hash.to_string(),
+                    );
                 }
             }
 
-            for execution_outcome in chunk.receipt_execution_outcomes {
-                if let Some(receipt) = execution_outcome.receipt {
-                    if let Some(receipt_id) = wanted_receipt_ids.take(&receipt.receipt_id.to_string()) {
-                        // log the tx because we've found it
-                        info!(
-                            target: "indexer_example",
-                            "Transaction hash {:?} related to Mintbase executed with status {:?}",
-                            tx_receipt_ids.get(receipt_id.as_str()),
-                            execution_outcome.execution_outcome.outcome.status
-                        );
-                        // remove tx from hashmap
-                        tx_receipt_ids.remove(receipt_id.as_str());
-                    }
+            for execution_outcome in shard.receipt_execution_outcomes {
+                if let Some(receipt_id) =
+                    wanted_receipt_ids.take(&execution_outcome.receipt.receipt_id.to_string())
+                {
+                    // log the tx because we've found it
+                    info!(
+                        target: "indexer_example",
+                        "Transaction hash {:?} related to Mintbase executed with status {:?}",
+                        tx_receipt_ids.get(receipt_id.as_str()),
+                        execution_outcome.execution_outcome.outcome.status
+                    );
+                    // remove tx from hashmap
+                    tx_receipt_ids.remove(receipt_id.as_str());
                 }
             }
         }
@@ -72,8 +82,9 @@ fn main() {
 
     let opts: Opts = Opts::parse();
 
-    let home_dir =
-        opts.home_dir.unwrap_or(std::path::PathBuf::from(near_indexer::get_default_home()));
+    let home_dir = opts
+        .home_dir
+        .unwrap_or(std::path::PathBuf::from(near_indexer::get_default_home()));
 
     match opts.subcmd {
         SubCommand::Run => {
