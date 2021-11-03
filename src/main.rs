@@ -1,4 +1,5 @@
 use actix;
+
 use std::collections::{HashMap, HashSet};
 
 use clap::Clap;
@@ -62,6 +63,33 @@ async fn listen_blocks(mut stream: mpsc::Receiver<near_indexer::StreamerMessage>
                         tx_receipt_ids.get(receipt_id.as_str()),
                         execution_outcome.execution_outcome.outcome.status
                     );
+                    if let near_indexer::near_primitives::views::ReceiptEnumView::Action {
+                        signer_id,
+                        ..
+                    } = &execution_outcome.receipt.receipt
+                    {
+                        eprintln!("{}", signer_id);
+                    }
+
+                    if let near_indexer::near_primitives::views::ReceiptEnumView::Action {
+                        actions,
+                        ..
+                    } = execution_outcome.receipt.receipt
+                    {
+                        for action in actions.iter() {
+                            if let near_indexer::near_primitives::views::ActionView::FunctionCall {
+                                args,
+                                ..
+                            } = action
+                            {
+                                if let Ok(decoded_args) = base64::decode(args) {
+                                    if let Ok(args_json) = serde_json::from_slice::<serde_json::Value>(&decoded_args) {
+                                        eprintln!("{:#?}", args_json);
+                                    }
+                                }
+                            }
+                        }
+                    }
                     // remove tx from hashmap
                     tx_receipt_ids.remove(receipt_id.as_str());
                 }
@@ -71,7 +99,7 @@ async fn listen_blocks(mut stream: mpsc::Receiver<near_indexer::StreamerMessage>
 }
 
 fn is_mintbase_tx(tx: &near_indexer::IndexerTransactionWithOutcome) -> bool {
-    tx.transaction.receiver_id.as_str() == "m82.testnet"
+    &tx.transaction.receiver_id.to_string() == "m82.testnet"
 }
 
 fn main() {
