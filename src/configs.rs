@@ -17,9 +17,16 @@ pub(crate) struct Opts {
 #[derive(Clap, Debug)]
 pub(crate) enum SubCommand {
     /// Run NEAR Indexer Example. Start observe the network
-    Run,
+    Run(RunArgs),
     /// Initialize necessary configs
     Init(InitConfigArgs),
+}
+
+#[derive(Clap, Debug)]
+pub(crate) struct RunArgs {
+    /// account ids to watch for
+    #[clap(long)]
+    pub accounts: String,
 }
 
 #[derive(Clap, Debug)]
