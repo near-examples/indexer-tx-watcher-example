@@ -38,11 +38,13 @@ To connect NEAR Indexer for Explorer to the specific chain you need to have nece
 
 * `localnet` (recommended to start with)
     ```bash
-    $ cargo run --release -- --home-dir ~/.near/localnet init --chain-id localnet
+    $ cargo build --release
+    $ ./target/release/indexer-tx-watcher-example --home-dir ~/.near/localnet init --chain-id localnet
     ```
 * `testnet` (once you've adjusted and extended the example for your needs)
     ```bash
-    $ cargo run --release -- --home-dir ~/.near/testnet init --chain-id testnet --download-config --download-genesis
+    $ cargo build --release
+    $ ./target/release/indexer-tx-watcher-example --home-dir ~/.near/testnet init --chain-id testnet --download-config --download-genesis
     ```
 
 The above code will download the official genesis config and generate necessary configs.
@@ -66,7 +68,7 @@ For example, with a single shared network, you just add the shards numbers you n
 ### Run
 
 ```bash
-$ cargo run --release -- --home-dir ~/.near/localnet run --accounts mycoolcontract.near,myanothercoolcontract.near
+$ ./target/release/indexer-tx-watcher-example --home-dir ~/.near/localnet run --accounts mycoolcontract.near,myanothercoolcontract.near
 ```
 
 Provide your contracts list after `--accounts` key separated with comma (`,`) **avoid spaces**
