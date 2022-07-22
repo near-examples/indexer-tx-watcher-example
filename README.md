@@ -89,7 +89,7 @@ All the backups can be downloaded from the public S3 bucket which contains lates
 
 ## Archival node
 
-It's not necessary but in order to index everything in the network it is better to do it from the genesis. `nearcore` node is running in non-archival mode by default. That means that the node keeps data only for [5 last epochs](https://docs.near.org/docs/concepts/epoch). In order to index data from the genesis we need to turn the node in archival mode.
+It's not necessary but in order to index everything in the network it is better to do it from the genesis. `nearcore` node is running in non-archival mode by default. That means that the node keeps data only for [5 last epochs](https://docs.near.org/concepts/basics/epoch). In order to index data from the genesis we need to turn the node in archival mode.
 
 To do it we need to update `config.json` located in `--home-dir` or your choice (by default it is `~/.near`).
 
@@ -111,4 +111,4 @@ All the backups can be downloaded from the public S3 bucket which contains lates
 * [Archival Mainnet data folder](https://near-protocol-public.s3.ca-central-1.amazonaws.com/backups/mainnet/archive/data.tar)
 * [Archival Testnet data folder](https://near-protocol-public.s3.ca-central-1.amazonaws.com/backups/testnet/archive/data.tar)
 
-See https://docs.near.org/docs/roles/integrator/exchange-integration#running-an-archival-node for reference
+See [this article](https://docs.near.org/integrator/exchange-integration#running-an-archival-node) for reference
